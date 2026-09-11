@@ -1,131 +1,174 @@
 import React from 'react';
-import { ShieldCheck, Wifi, QrCode, PlusCircle, List, Stethoscope } from 'lucide-react';
+import { ShieldCheck, Wifi, QrCode, PlusCircle, List, Stethoscope, ArrowLeftRight, Sparkles } from 'lucide-react';
+import { bounceTap } from '../utils/animations';
 
-export default function Navbar({ currentView, setCurrentView, networkInfo, isDoctorPortal }) {
+export default function Navbar({ currentView, setCurrentView, networkInfo, isDoctorPortal, onTogglePortal }) {
   const lanIp = networkInfo?.lan_ip || window.location.hostname;
   const currentPort = window.location.port || (isDoctorPortal ? '5174' : '5173');
 
+  const handleNavClick = (e, view) => {
+    bounceTap(e.currentTarget);
+    setCurrentView(view);
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200 shadow-xs">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <header className={`sticky top-0 z-50 transition-colors duration-300 ${
+      isDoctorPortal 
+        ? 'bg-command-900/90 backdrop-blur-xl border-b border-slate-800 text-slate-100 shadow-xl' 
+        : 'bg-white/90 backdrop-blur-xl border-b border-emerald-900/10 text-slate-900 shadow-xs'
+    }`}>
+      <div className="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
         {/* Brand */}
         <div 
-          onClick={() => setCurrentView(isDoctorPortal ? 'vet' : 'register')}
-          className="flex items-center gap-2.5 cursor-pointer group"
+          onClick={(e) => handleNavClick(e, isDoctorPortal ? 'vet' : 'register')}
+          className="flex items-center gap-2.5 cursor-pointer group select-none"
         >
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform ${
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:scale-105 ${
             isDoctorPortal 
-              ? 'bg-gradient-to-br from-teal-700 to-slate-900 shadow-teal-700/20' 
-              : 'bg-gradient-to-br from-emerald-600 to-teal-700 shadow-emerald-500/20'
+              ? 'bg-gradient-to-br from-cyan-500 to-teal-700 shadow-cyan-500/30' 
+              : 'bg-gradient-to-br from-emerald-500 to-teal-700 shadow-emerald-500/30'
           }`}>
-            {isDoctorPortal ? <Stethoscope className="w-6 h-6 text-amber-300" /> : <ShieldCheck className="w-6 h-6" />}
+            {isDoctorPortal ? <Stethoscope className="w-5 h-5 text-cyan-100" /> : <ShieldCheck className="w-5 h-5 text-emerald-100" />}
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 leading-none">
-                Dehat<span className={isDoctorPortal ? 'text-teal-700' : 'text-emerald-600'}>Arogya</span>
-              </h1>
-              <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${
+              <span className={`text-lg sm:text-xl font-heading font-black tracking-tight ${isDoctorPortal ? 'text-white' : 'text-slate-900'}`}>
+                Dehat<span className={isDoctorPortal ? 'text-cyan-400' : 'text-emerald-600'}>Arogya</span>
+              </span>
+              <span className={`text-[9px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 rounded-full border ${
                 isDoctorPortal
-                  ? 'bg-teal-50 text-teal-900 border-teal-300'
-                  : 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                  ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
+                  : 'bg-emerald-50 text-emerald-800 border-emerald-200'
               }`}>
-                {isDoctorPortal ? 'DOCTOR PORTAL' : 'FARMER PORTAL'}
+                {isDoctorPortal ? 'VET DESK' : 'FARMER HUB'}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+            <p className={`text-[10.5px] font-medium leading-none mt-0.5 hidden sm:block ${
+              isDoctorPortal ? 'text-slate-400' : 'text-slate-500'
+            }`}>
               {isDoctorPortal 
-                ? 'Veterinary Jurisdiction & Treatment Desk' 
-                : 'Livestock Identity & AI Health Triage'}
+                ? 'Clinical Jurisdiction Telemetry & Treatment' 
+                : 'Livestock Identity & AI Voice Diagnostic Triage'}
             </p>
           </div>
         </div>
 
-        {/* LAN Info Badge */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-700 font-mono">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <Wifi className="w-3.5 h-3.5 text-slate-500" />
-          <span>PORT {currentPort} • {lanIp}</span>
+        {/* Center: LAN status with Radar ping */}
+        <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono border transition-all ${
+          isDoctorPortal
+            ? 'bg-slate-800/80 border-slate-700 text-slate-300'
+            : 'bg-emerald-50/80 border-emerald-100 text-emerald-900'
+        }`}>
+          <div className="relative flex h-2 w-2">
+            <span className={`absolute inline-flex h-full w-full rounded-full radar-ring ${
+              isDoctorPortal ? 'bg-cyan-400' : 'bg-emerald-400'
+            }`}></span>
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${
+              isDoctorPortal ? 'bg-cyan-400' : 'bg-emerald-500'
+            }`}></span>
+          </div>
+          <Wifi className="w-3.5 h-3.5 opacity-70" />
+          <span className="text-[11px] font-semibold">PORT {currentPort} • {lanIp}</span>
         </div>
 
-        {/* Navigation Actions - COMPLETELY SEPARATED FOR EACH PORTAL */}
-        <nav className="flex items-center gap-1">
-          {isDoctorPortal ? (
-            /* DOCTOR PORTAL ONLY (Port 5174) */
-            <>
-              <button
-                id="nav-vet-cases-btn"
-                onClick={() => setCurrentView('vet')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
-                  currentView === 'vet'
-                    ? 'bg-teal-800 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-teal-800 hover:bg-teal-50'
-                }`}
-              >
-                <Stethoscope className="w-4 h-4 text-amber-300" />
-                <span>Jurisdiction Cases</span>
-              </button>
+        {/* Right Navigation & Portal Switcher */}
+        <div className="flex items-center gap-1.5">
+          <nav className="flex items-center gap-1">
+            {isDoctorPortal ? (
+              /* DOCTOR PORTAL NAV (Port 5174) */
+              <>
+                <button
+                  id="nav-vet-cases-btn"
+                  onClick={(e) => handleNavClick(e, 'vet')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 ${
+                    currentView === 'vet'
+                      ? 'bg-cyan-500 text-slate-950 font-bold shadow-lg shadow-cyan-500/25'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <Stethoscope className="w-3.5 h-3.5" />
+                  <span>Cases</span>
+                </button>
 
-              <button
-                id="nav-vet-directory-btn"
-                onClick={() => setCurrentView('directory')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
-                  currentView === 'directory'
-                    ? 'bg-teal-800 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-teal-800 hover:bg-teal-50'
-                }`}
-              >
-                <List className="w-4 h-4" />
-                <span>Herd Registry</span>
-              </button>
-            </>
-          ) : (
-            /* FARMER / FIELD PORTAL ONLY (Port 5173) */
-            <>
-              <button
-                id="nav-register-btn"
-                onClick={() => setCurrentView('register')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
-                  currentView === 'register'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
-                }`}
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span className="hidden xs:inline">Register Tag</span>
-              </button>
+                <button
+                  id="nav-vet-directory-btn"
+                  onClick={(e) => handleNavClick(e, 'directory')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 ${
+                    currentView === 'directory'
+                      ? 'bg-cyan-500 text-slate-950 font-bold shadow-lg shadow-cyan-500/25'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span>Registry</span>
+                </button>
+              </>
+            ) : (
+              /* FARMER PORTAL NAV (Port 5173) */
+              <>
+                <button
+                  id="nav-register-btn"
+                  onClick={(e) => handleNavClick(e, 'register')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 ${
+                    currentView === 'register'
+                      ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/30'
+                      : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`}
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">Register</span>
+                </button>
 
-              <button
-                id="nav-scan-btn"
-                onClick={() => setCurrentView('scan')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
-                  currentView === 'scan'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
-                }`}
-              >
-                <QrCode className="w-4 h-4" />
-                <span className="hidden xs:inline">Scan / Triage</span>
-              </button>
+                <button
+                  id="nav-scan-btn"
+                  onClick={(e) => handleNavClick(e, 'scan')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 ${
+                    currentView === 'scan'
+                      ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/30'
+                      : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`}
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">Triage</span>
+                </button>
 
-              <button
-                id="nav-directory-btn"
-                onClick={() => setCurrentView('directory')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
-                  currentView === 'directory'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
-                }`}
-              >
-                <List className="w-4 h-4" />
-                <span className="hidden xs:inline">Directory</span>
-              </button>
-            </>
+                <button
+                  id="nav-directory-btn"
+                  onClick={(e) => handleNavClick(e, 'directory')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 ${
+                    currentView === 'directory'
+                      ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/30'
+                      : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
+                  }`}
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">Herd</span>
+                </button>
+              </>
+            )}
+          </nav>
+
+          {/* Quick Portal Switcher for Instant Demo Verification */}
+          {onTogglePortal && (
+            <button
+              onClick={(e) => {
+                bounceTap(e.currentTarget);
+                onTogglePortal();
+              }}
+              title={isDoctorPortal ? "Switch to Farmer Portal View" : "Switch to Veterinary Doctor Desk View"}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all duration-200 ${
+                isDoctorPortal
+                  ? 'bg-slate-800/80 hover:bg-slate-700 text-cyan-300 border-slate-700'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+              }`}
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">
+                {isDoctorPortal ? 'Farmer View' : 'Vet View'}
+              </span>
+            </button>
           )}
-        </nav>
+        </div>
       </div>
     </header>
   );

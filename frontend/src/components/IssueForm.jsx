@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Send, Sparkles, AlertCircle, Loader2, Volume2, Globe, MapPin, Navigation, RefreshCw } from 'lucide-react';
+import { Mic, MicOff, Send, Sparkles, AlertCircle, Loader2, Volume2, Globe, MapPin, Navigation, RefreshCw, Activity } from 'lucide-react';
+import { bounceTap, animateWaveform } from '../utils/animations';
 
 const COMMON_SYMPTOMS = [
   { en: 'High Fever', hi: 'तेज बुखार' },
@@ -19,6 +20,7 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
   const [speechLang, setSpeechLang] = useState('hi-IN'); // 'hi-IN' or 'en-IN'
   const [speechSupported, setSpeechSupported] = useState(false);
   const recognitionRef = useRef(null);
+  const waveContainerRef = useRef(null);
 
   // GPS Geolocation state
   const [gpsCoords, setGpsCoords] = useState(null);
@@ -97,7 +99,15 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
     }
   }, []);
 
-  const toggleRecording = () => {
+  // Control the anime.js waveform whenever recording status changes
+  useEffect(() => {
+    if (waveContainerRef.current) {
+      animateWaveform(waveContainerRef.current, isRecording);
+    }
+  }, [isRecording]);
+
+  const toggleRecording = (e) => {
+    if (e) bounceTap(e.currentTarget);
     if (!recognitionRef.current) return;
 
     if (isRecording) {
@@ -114,7 +124,8 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
     }
   };
 
-  const addSymptomChip = (chip) => {
+  const addSymptomChip = (e, chip) => {
+    bounceTap(e.currentTarget);
     const textToAdd = speechLang === 'hi-IN' ? chip.hi : chip.en;
     setSymptoms((prev) => {
       if (!prev.trim()) return textToAdd;
@@ -138,41 +149,49 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 sm:p-7 shadow-sm border border-slate-200">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+    <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-card-elevated border border-emerald-950/10 space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-            <span>Describe Health Symptoms</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">
-              AI Triage
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-heading font-black text-slate-900 flex items-center gap-2">
+              <span>Describe Health Symptoms</span>
+            </h3>
+            <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+              AI CLINICAL TRIAGE
             </span>
-          </h3>
-          <p className="text-xs text-slate-500">
-            Explain observations in plain Hindi or English. Voice input supported.
+          </div>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Voice or text input supported in Hindi & English • Auto-routed to local vet
           </p>
         </div>
 
         {/* Speech Language Switcher */}
         {speechSupported && (
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <div className="flex items-center bg-slate-100/90 p-1 rounded-2xl text-xs font-bold self-start sm:self-auto border border-slate-200/80">
             <button
               type="button"
-              onClick={() => setSpeechLang('hi-IN')}
-              className={`px-2.5 py-1 rounded-lg transition-all ${
+              onClick={(e) => {
+                bounceTap(e.currentTarget);
+                setSpeechLang('hi-IN');
+              }}
+              className={`px-3 py-1 rounded-xl transition-all ${
                 speechLang === 'hi-IN'
                   ? 'bg-white text-emerald-800 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              हिन्दी
+              🇮🇳 हिन्दी
             </button>
             <button
               type="button"
-              onClick={() => setSpeechLang('en-IN')}
-              className={`px-2.5 py-1 rounded-lg transition-all ${
+              onClick={(e) => {
+                bounceTap(e.currentTarget);
+                setSpeechLang('en-IN');
+              }}
+              className={`px-3 py-1 rounded-xl transition-all ${
                 speechLang === 'en-IN'
                   ? 'bg-white text-emerald-800 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               EN
@@ -192,8 +211,8 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
               <button
                 key={idx}
                 type="button"
-                onClick={() => addSymptomChip(chip)}
-                className="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 text-slate-700 text-xs font-medium rounded-lg transition-all active:scale-95"
+                onClick={(e) => addSymptomChip(e, chip)}
+                className="px-3 py-1.5 bg-slate-50/80 hover:bg-emerald-50 hover:text-emerald-900 border border-slate-200/80 hover:border-emerald-300 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
               >
                 + {speechLang === 'hi-IN' ? chip.hi : chip.en}
               </button>
@@ -201,8 +220,8 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
           </div>
         </div>
 
-        {/* Textarea with embedded mic button */}
-        <div className="relative">
+        {/* Textarea with embedded mic button & anime.js soundwave visualizer */}
+        <div className="relative rounded-2xl border border-slate-300/80 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/15 transition-all bg-white overflow-hidden shadow-inner">
           <textarea
             rows={4}
             required
@@ -210,32 +229,50 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
             onChange={(e) => setSymptoms(e.target.value)}
             placeholder={
               speechLang === 'hi-IN'
-                ? "पशु के लक्षण बताएं (जैसे: 2 दिन से तेज बुखार है, मुंह से लार गिर रही है और चारा नहीं खा रही है)..."
-                : "Describe symptoms (e.g., cow has high fever, drooling, blisters in mouth, not chewing cud)..."
+                ? "पशु के लक्षण बताएं (जैसे: 2 दिन से तेज बुखार है, मुंह में छाले हैं, चारा नहीं खा रही है)..."
+                : "Describe observed signs (e.g. high temperature, blisters inside mouth, sudden drop in milk, limping)..."
             }
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 placeholder:text-slate-400 pr-12 leading-relaxed"
+            className="w-full px-4 py-3 text-sm text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-normal leading-relaxed resize-none bg-transparent"
           />
 
-          {/* Voice Input Mic Button */}
-          {speechSupported && (
-            <button
-              type="button"
-              onClick={toggleRecording}
-              title={isRecording ? 'Stop Recording' : `Speak in ${speechLang === 'hi-IN' ? 'Hindi' : 'English'}`}
-              className={`absolute right-3 bottom-3 p-2.5 rounded-xl transition-all shadow-sm ${
-                isRecording
-                  ? 'bg-red-500 text-white recording-pulse'
-                  : 'bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-800'
-              }`}
-            >
-              {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-            </button>
-          )}
+          {/* Bottom Bar inside Textarea: Waveform & Mic */}
+          <div className="flex items-center justify-between px-3 py-2 bg-slate-50/80 border-t border-slate-100">
+            {/* Anime.js Audio Waveform Visualizer */}
+            <div ref={waveContainerRef} className="flex items-center gap-1 h-7 px-2">
+              <span className={`text-[10px] font-mono font-bold mr-2 ${isRecording ? 'text-rose-600 animate-pulse' : 'text-slate-400'}`}>
+                {isRecording ? 'RECORDING LIVE' : 'VOICE ENGINE'}
+              </span>
+              {[...Array(9)].map((_, i) => (
+                <span 
+                  key={i} 
+                  className={`wave-bar ${isRecording ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                  style={{ height: `${10 + (i % 3) * 6}px` }}
+                />
+              ))}
+            </div>
+
+            {/* Mic Toggle Button */}
+            {speechSupported && (
+              <button
+                type="button"
+                onClick={toggleRecording}
+                title={isRecording ? 'Stop Recording' : `Speak in ${speechLang === 'hi-IN' ? 'Hindi' : 'English'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all shadow-xs cursor-pointer ${
+                  isRecording
+                    ? 'bg-rose-500 text-white shadow-rose-500/30 recording-pulse'
+                    : 'bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200'
+                }`}
+              >
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-emerald-600" />}
+                <span>{isRecording ? 'Stop' : 'Voice Input'}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Mobile GPS Location Capture Pill */}
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 overflow-hidden">
+        <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2.5 overflow-hidden">
             <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
               gpsStatus === 'acquired'
                 ? 'bg-emerald-500 shadow-xs ring-2 ring-emerald-300 animate-pulse'
@@ -245,17 +282,17 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
             }`} />
             <div className="truncate">
               {gpsStatus === 'acquired' && gpsCoords ? (
-                <span className="text-slate-800 font-medium">
-                  <strong className="text-emerald-700">GPS Tagged:</strong> {gpsCoords.lat.toFixed(4)}°, {gpsCoords.lng.toFixed(4)}°
+                <span className="text-slate-800 font-bold font-mono">
+                  <span className="text-emerald-700 font-sans">📍 GPS Pinned:</span> {gpsCoords.lat.toFixed(4)}°, {gpsCoords.lng.toFixed(4)}°
                   {gpsCoords.accuracy ? ` (±${Math.round(gpsCoords.accuracy)}m)` : ''}
                 </span>
               ) : gpsStatus === 'requesting' ? (
-                <span className="text-amber-700 font-medium">
+                <span className="text-amber-700 font-semibold animate-pulse">
                   Acquiring Mobile GPS location...
                 </span>
               ) : (
-                <span className="text-slate-500">
-                  {gpsErrorMsg || 'Mobile GPS Location (Optional for Vet Map routing)'}
+                <span className="text-slate-500 font-medium">
+                  {gpsErrorMsg || 'Mobile GPS Coordinates (Helps veterinary officer navigate to your location)'}
                 </span>
               )}
             </div>
@@ -263,13 +300,16 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
 
           <button
             type="button"
-            onClick={requestGpsLocation}
+            onClick={(e) => {
+              bounceTap(e.currentTarget);
+              requestGpsLocation();
+            }}
             disabled={gpsStatus === 'requesting'}
-            className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 text-[11px] font-semibold flex items-center gap-1 shrink-0 transition-all"
+            className="p-1.5 px-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 text-[11px] font-bold flex items-center gap-1 shrink-0 transition-all cursor-pointer"
             title="Refresh GPS Coordinates"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${gpsStatus === 'requesting' ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">GPS</span>
+            <span>GPS</span>
           </button>
         </div>
 
@@ -277,12 +317,13 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
         <button
           type="submit"
           disabled={loading || !symptoms.trim()}
-          className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
+          onClick={(e) => bounceTap(e.currentTarget)}
+          className="w-full py-3.5 px-5 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 hover:from-emerald-500 hover:to-teal-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Analyzing with Gemini 2.5 Flash Triage...</span>
+              <span>Analyzing with Gemini Flash Veterinary AI...</span>
             </>
           ) : (
             <>

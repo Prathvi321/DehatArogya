@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, 
   PlusCircle, 
@@ -8,27 +8,44 @@ import {
   Loader2, 
   Filter,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Tag,
+  ArrowRight,
+  ShieldCheck
 } from 'lucide-react';
 import { getAllAnimals } from '../api';
 import EarTagCard from './EarTagCard';
+import { bounceTap, staggerFadeIn, modalPop } from '../utils/animations';
 
-export default function LivestockDirectory({ onSelectAnimalForTriage, onNavigateRegister }) {
+export default function LivestockDirectory({ onSelectAnimalForTriage, onNavigateRegister, hideRegisterBtn = false }) {
   const [animals, setAnimals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterSpecies, setFilterSpecies] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedForTag, setSelectedForTag] = useState(null);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     loadLivestock();
   }, []);
 
+  useEffect(() => {
+    if (!loading && animals.length > 0) {
+      staggerFadeIn('.directory-animal-card', { startDelay: 40, stagger: 45 });
+    }
+  }, [loading, filterSpecies, searchQuery]);
+
+  useEffect(() => {
+    if (selectedForTag && modalRef.current) {
+      modalPop(modalRef.current);
+    }
+  }, [selectedForTag]);
+
   const loadLivestock = async () => {
     setLoading(true);
     try {
       const data = await getAllAnimals();
-      setAnimals(data);
+      setAnimals(data || []);
     } catch (err) {
       console.error('Failed to load animals:', err);
     } finally {
@@ -58,14 +75,14 @@ export default function LivestockDirectory({ onSelectAnimalForTriage, onNavigate
   });
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Ear Tag Modal Popup */}
       {selectedForTag && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full relative shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div ref={modalRef} className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full relative shadow-2xl border border-slate-200">
             <button
               onClick={() => setSelectedForTag(null)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-700 font-bold text-lg p-1"
+              className="absolute right-4 top-4 text-slate-400 hover:text-slate-800 font-bold text-lg p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
             >
               ✕
             </button>
@@ -84,97 +101,116 @@ export default function LivestockDirectory({ onSelectAnimalForTriage, onNavigate
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-emerald-950/10 shadow-card-elevated">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">
-            Registered Livestock Directory
-          </h2>
-          <p className="text-xs text-slate-500">
-            View all animals, digital ear tags, and past triage incidents.
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-heading font-black text-slate-900">
+              Livestock Herd Registry
+            </h2>
+            <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              {animals.length} Animals
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Instant digital ear tag inspection, QR printing, and past diagnostic records
           </p>
         </div>
 
-        <button
-          onClick={onNavigateRegister}
-          className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all self-start sm:self-auto"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Register New</span>
-        </button>
+        {!hideRegisterBtn && onNavigateRegister && (
+          <button
+            onClick={(e) => {
+              bounceTap(e.currentTarget);
+              onNavigateRegister();
+            }}
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all self-start sm:self-auto cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Register New Livestock</span>
+          </button>
+        )}
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by name, tag ID, or village..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 placeholder:text-slate-400"
-            />
-          </div>
+      <div className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-card-elevated space-y-3">
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by animal name, tag ID, or village..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 rounded-xl glass-input-light text-xs font-medium text-slate-900 placeholder:text-slate-400"
+          />
         </div>
 
         {/* Filter Species Tabs */}
         <div className="flex flex-wrap gap-1.5 pt-1">
-          {['ALL', 'Cow', 'Buffalo', 'Goat', 'Sheep'].map((sp) => (
-            <button
-              key={sp}
-              type="button"
-              onClick={() => setFilterSpecies(sp)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                filterSpecies === sp
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {sp === 'ALL' ? 'All Species' : `${getSpeciesEmoji(sp)} ${sp}`}
-            </button>
-          ))}
+          {['ALL', 'Cow', 'Buffalo', 'Goat', 'Sheep'].map((sp) => {
+            const isSelected = filterSpecies === sp;
+            return (
+              <button
+                key={sp}
+                type="button"
+                onClick={(e) => {
+                  bounceTap(e.currentTarget);
+                  setFilterSpecies(sp);
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {sp === 'ALL' ? '🌐 All Species' : `${getSpeciesEmoji(sp)} ${sp}`}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Livestock Grid / List */}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white/80 backdrop-blur-md rounded-3xl border border-slate-200">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mx-auto mb-2" />
-          <p className="text-xs font-semibold text-slate-600">Loading livestock directory...</p>
+          <p className="text-xs font-bold text-slate-600">Loading livestock directory...</p>
         </div>
       ) : filteredAnimals.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filteredAnimals.map((animal) => (
             <div
               key={animal.tag_id}
-              className="bg-white rounded-2xl p-4 border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between"
+              className="directory-animal-card bg-white/95 backdrop-blur-md rounded-3xl p-5 border border-slate-200/80 hover:border-emerald-400 hover:shadow-card-elevated transition-all duration-300 flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{getSpeciesEmoji(animal.animal_type)}</span>
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl shadow-inner">
+                      {getSpeciesEmoji(animal.animal_type)}
+                    </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 text-sm">
+                      <h3 className="font-heading font-black text-slate-900 text-base leading-tight">
                         {animal.name}
                       </h3>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-slate-500 font-medium">
                         {animal.animal_type} • {animal.gender} • {animal.age} yrs
                       </p>
                     </div>
                   </div>
-                  <span className="font-mono text-[11px] font-black bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300">
+                  <span className="font-mono text-[11px] font-black bg-amber-50 text-amber-900 px-2.5 py-1 rounded-xl border border-amber-300 shadow-xs">
                     {animal.tag_id}
                   </span>
                 </div>
 
-                <div className="text-[11px] text-slate-500 space-y-0.5 border-t border-slate-100 pt-2 mb-3">
-                  <p><strong>Village:</strong> {animal.village || 'N/A'}</p>
+                <div className="text-[11.5px] text-slate-600 space-y-1 border-t border-slate-100 pt-2.5 mb-4">
                   <p>
-                    <strong>Medical Incidents:</strong>{' '}
-                    <span className="font-semibold text-slate-800">
+                    <span className="text-slate-400 font-medium">Village / Loc:</span>{' '}
+                    <strong className="text-slate-800">{animal.village || 'Field Recorded'}</strong>
+                  </p>
+                  <p>
+                    <span className="text-slate-400 font-medium">Medical Incidents:</span>{' '}
+                    <strong className="text-emerald-700 font-mono">
                       {animal.medical_history?.length || 0} recorded
-                    </span>
+                    </strong>
                   </p>
                 </div>
               </div>
@@ -183,29 +219,35 @@ export default function LivestockDirectory({ onSelectAnimalForTriage, onNavigate
               <div className="flex items-center gap-2 border-t border-slate-100 pt-3">
                 <button
                   type="button"
-                  onClick={() => setSelectedForTag(animal)}
-                  className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs flex items-center justify-center gap-1 transition-all"
+                  onClick={(e) => {
+                    bounceTap(e.currentTarget);
+                    setSelectedForTag(animal);
+                  }}
+                  className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
-                  <QrCode className="w-3.5 h-3.5" />
+                  <QrCode className="w-3.5 h-3.5 text-slate-500" />
                   <span>View Tag</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => onSelectAnimalForTriage(animal.tag_id)}
-                  className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1 transition-all shadow-xs"
+                  onClick={(e) => {
+                    bounceTap(e.currentTarget);
+                    onSelectAnimalForTriage(animal.tag_id);
+                  }}
+                  className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-emerald-600/20 cursor-pointer"
                 >
                   <Stethoscope className="w-3.5 h-3.5" />
-                  <span>Triage</span>
+                  <span>Diagnose</span>
                 </button>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-xs">
-          <p className="font-bold text-sm text-slate-700 mb-1">No animals found</p>
-          <p>Register your first livestock animal to generate a physical QR ear tag.</p>
+        <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-500 text-xs">
+          <p className="font-bold text-sm text-slate-700 mb-1">No livestock records found</p>
+          <p>Register an animal to generate a physical QR ear-tag and track diagnostic triage.</p>
         </div>
       )}
     </div>
