@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DehatArogya • SIH Showcase Gateway</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            dehat: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-emerald-500 selection:text-white relative overflow-x-hidden flex flex-col justify-between">
+
+  <!-- Atmospheric Background Glow -->
+  <div class="fixed inset-0 pointer-events-none z-0">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-emerald-500/15 rounded-full blur-[140px]"></div>
+    <div class="absolute -bottom-40 left-1/4 w-[500px] h-[400px] bg-teal-500/10 rounded-full blur-[120px]"></div>
+    <div class="absolute top-1/3 right-10 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-[120px]"></div>
+  </div>
+
+  <!-- Header / Nav -->
+  <header class="relative z-10 border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xl font-black tracking-tight text-white">Dehat<span class="text-emerald-400">Arogya</span></span>
+            <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300 border border-amber-400/30">SIH 2024 Showcase</span>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Smart India Hackathon • Problem Statement #SIH1637</p>
+        </div>
+      </div>
+
+      <!-- Live LAN IP Beacon -->
+      <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-300 font-mono">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <span id="gateway-lan-ip">LAN: Loading...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="relative z-10 max-w-6xl mx-auto px-6 py-12 md:py-16">
+    <div class="text-center max-w-3xl mx-auto mb-14">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold mb-4">
+        <span>🤖 Decentralized QR Identity + Gemini 2.5 Flash Triage</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+        Efficient Livestock Health & <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 bg-clip-text text-transparent">AI Triage Ecosystem</span>
+      </h1>
+      <p class="text-sm sm:text-base text-slate-400 mt-4 leading-relaxed">
+        Select a portal below to launch. Both applications run independently on separate ports and share the same synchronized SQLite database and Gemini 2.5 Flash intelligence core.
+      </p>
+    </div>
+
+    <!-- The 2 Portal Cards (Farmer vs Doctor) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      
+      <!-- PORTAL 1: Farmer & Field Health Portal (Port 5173) -->
+      <div class="group relative rounded-3xl p-8 bg-slate-900/80 border border-emerald-500/30 hover:border-emerald-400 transition-all duration-300 shadow-2xl hover:shadow-emerald-500/10 flex flex-col justify-between overflow-hidden">
+        <div class="absolute -right-12 -top-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+        
+        <div>
+          <!-- Header -->
+          <div class="flex items-center justify-between gap-3 mb-5">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-3xl">
+              🐄
+            </div>
+            <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              PORT 5173
+            </span>
+          </div>
+
+          <div class="mb-2">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-emerald-400 block mb-1">
+              Field & Farmer Interface
+            </span>
+            <h2 class="text-2xl font-black text-white group-hover:text-emerald-300 transition-colors">
+              Farmer & Livestock Portal
+            </h2>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed mb-6">
+            Used by farmers and field attendants directly on phones or laptops. Zero login required — animal identity is permanently tied to a physical QR ear-tag.
+          </p>
+
+          <!-- Feature Highlights -->
+          <div class="space-y-2.5 mb-8 text-xs text-slate-300">
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Printable Digital Ear Tag:</strong> Instant QR generation with tag ID</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Camera Scan & Confirmation:</strong> "Is this Gauri (Cow, 3 yrs)?"</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Speech-to-Text Voice Input:</strong> Speak in Hindi or English</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>AI Gemini Triage:</strong> Risk badge, Hindi/EN routine & remedies</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Mobile GPS Tagging:</strong> Auto-coordinates captured on report</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Launch Button -->
+        <a 
+          id="btn-launch-farmer"
+          href="http://localhost:5173/" 
+          target="_blank"
+          class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm text-center shadow-lg shadow-emerald-600/30 transition-all transform group-hover:-translate-y-0.5 flex items-center justify-center gap-2"
+        >
+          <span>Open Farmer Portal (Port 5173)</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </a>
+      </div>
+
+      <!-- PORTAL 2: Veterinary Doctor Portal (Port 5174) -->
+      <div class="group relative rounded-3xl p-8 bg-slate-900/80 border border-teal-500/30 hover:border-teal-400 transition-all duration-300 shadow-2xl hover:shadow-teal-500/10 flex flex-col justify-between overflow-hidden">
+        <div class="absolute -right-12 -top-12 w-40 h-40 bg-teal-500/10 rounded-full blur-2xl group-hover:bg-teal-500/20 transition-all"></div>
+        
+        <div>
+          <!-- Header -->
+          <div class="flex items-center justify-between gap-3 mb-5">
+            <div class="w-14 h-14 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-3xl">
+              🩺
+            </div>
+            <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/40">
+              PORT 5174
+            </span>
+          </div>
+
+          <div class="mb-2">
+            <span class="text-[11px] font-bold uppercase tracking-widest text-teal-400 block mb-1">
+              Doctor & Officer Desk
+            </span>
+            <h2 class="text-2xl font-black text-white group-hover:text-teal-300 transition-colors">
+              Veterinary Doctor Portal
+            </h2>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed mb-6">
+            Designed for veterinary medical officers and dispensary specialists. Filter active cases by assigned jurisdiction, view farm GPS routing, and prescribe treatments.
+          </p>
+
+          <!-- Feature Highlights -->
+          <div class="space-y-2.5 mb-8 text-xs text-slate-300">
+            <div class="flex items-start gap-2">
+              <span class="text-teal-400 font-bold">✓</span>
+              <span><strong>Jurisdiction Posting Selector:</strong> Rampur, Gokul, Shivpuri...</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-teal-400 font-bold">✓</span>
+              <span><strong>Urgency Case Triage Feed:</strong> Critical & Specialist alarms</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-teal-400 font-bold">✓</span>
+              <span><strong>Google Maps Direct Routing:</strong> Field GPS coordinates</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-teal-400 font-bold">✓</span>
+              <span><strong>One-Tap Owner Calling:</strong> Instant phone contact with farmer</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-teal-400 font-bold">✓</span>
+              <span><strong>Clinical Prescription Logs:</strong> Record visit & medication</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Launch Button -->
+        <a 
+          id="btn-launch-vet"
+          href="http://localhost:5174/" 
+          target="_blank"
+          class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-teal-700 to-slate-800 hover:from-teal-600 hover:to-slate-700 text-white font-bold text-sm text-center shadow-lg shadow-teal-700/30 transition-all transform group-hover:-translate-y-0.5 flex items-center justify-center gap-2 border border-teal-400/30"
+        >
+          <span>Open Doctor Portal (Port 5174)</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Backend & Architecture Summary Strip for Judges -->
+    <div class="mt-14 max-w-5xl mx-auto bg-slate-900/60 rounded-3xl p-6 border border-slate-800 backdrop-blur-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">
+            ⚡
+          </div>
+          <div>
+            <span class="font-bold text-slate-200">Shared Backend Architecture:</span>
+            <span class="text-slate-400"> FastAPI (Python 3.12) • SQLite DB • Gemini 2.5 Flash Structured Outputs</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 font-mono text-[11px]">
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-emerald-400 border border-slate-700">API: :8000</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-emerald-400 border border-slate-700">Farmer: :5173</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-teal-400 border border-slate-700">Doctor: :5174</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="relative z-10 border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    <p>DehatArogya Prototype • Smart India Hackathon (SIH 2024)</p>
+  </footer>
+
+  <!-- Dynamic Hostname Binder -->
+  <script>
+    const host = window.location.hostname || 'localhost';
+    document.getElementById('gateway-lan-ip').innerText = `LAN: ${host}:3000`;
+    
+    // Update launch buttons with dynamic host so phones & laptops work smoothly
+    const farmerBtn = document.getElementById('btn-launch-farmer');
+    const vetBtn = document.getElementById('btn-launch-vet');
+    
+    farmerBtn.href = `http://${host}:5173/`;
+    vetBtn.href = `http://${host}:5174/`;
+  </script>
+</body>
+</html>

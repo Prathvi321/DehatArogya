@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased min-h-screen selection:bg-emerald-200 selection:text-emerald-900;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Realistic digital ear-tag styling */
+.ear-tag-shape {
+  position: relative;
+  clip-path: polygon(15% 0%, 85% 0%, 100% 25%, 100% 100%, 0% 100%, 0% 25%);
+}
+
+/* Audio wave animation for microphone recording */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 14px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.recording-pulse {
+  animation: pulse-ring 1.5s infinite;
+}
+
+/* Print layout for digital ear tag */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-ear-tag, #printable-ear-tag * {
+    visibility: visible;
+  }
+  #printable-ear-tag {
+    position: absolute;
+    left: 50%;
+    top: 50px;
+    transform: translateX(-50%);
+    width: 380px !important;
+    box-shadow: none !important;
+    border: 2px solid #000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
