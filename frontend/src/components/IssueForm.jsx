@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Send, Sparkles, AlertCircle, Loader2, Volume2, Globe, MapPin, Navigation, RefreshCw, Activity } from 'lucide-react';
+import { Mic, MicOff, Send, Sparkles, AlertCircle, Loader2, Volume2, Globe, MapPin, Navigation, RefreshCw, Activity, Camera, Image as ImageIcon, X } from 'lucide-react';
 import { bounceTap, animateWaveform } from '../utils/animations';
 
 const COMMON_SYMPTOMS = [
@@ -21,6 +21,11 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
   const [speechSupported, setSpeechSupported] = useState(false);
   const recognitionRef = useRef(null);
   const waveContainerRef = useRef(null);
+
+  // Condition image and audio evidence state
+  const [conditionImage, setConditionImage] = useState(null);
+  const [audioTranscript, setAudioTranscript] = useState('');
+  const photoInputRef = useRef(null);
 
   // GPS Geolocation state
   const [gpsCoords, setGpsCoords] = useState(null);
@@ -134,6 +139,17 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
     });
   };
 
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setConditionImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!symptoms.trim() || loading) return;
@@ -144,7 +160,9 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
     onSubmitSymptoms(
       symptoms.trim(),
       gpsCoords ? gpsCoords.lat : null,
-      gpsCoords ? gpsCoords.lng : null
+      gpsCoords ? gpsCoords.lng : null,
+      conditionImage,
+      audioTranscript || symptoms.trim()
     );
   };
 
@@ -311,6 +329,52 @@ export default function IssueForm({ animal, onSubmitSymptoms, loading }) {
             <RefreshCw className={`w-3.5 h-3.5 ${gpsStatus === 'requesting' ? 'animate-spin' : ''}`} />
             <span>GPS</span>
           </button>
+        </div>
+
+        {/* Condition Photo Attachment (Optional photo of lumps, wounds, sores) */}
+        <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Camera className="w-4 h-4 text-emerald-700" />
+              <span>Attach Animal Condition Photo (लक्षण फोटो जोड़ें - ऐच्छिक):</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-semibold">Optional</span>
+          </div>
+
+          <input
+            type="file"
+            ref={photoInputRef}
+            accept="image/*"
+            className="hidden"
+            onChange={handlePhotoUpload}
+          />
+
+          {conditionImage ? (
+            <div className="relative inline-block rounded-xl overflow-hidden border border-emerald-300 shadow-xs">
+              <img
+                src={conditionImage}
+                alt="Condition Preview"
+                className="w-24 h-24 object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setConditionImage(null)}
+                className="absolute top-1 right-1 w-5 h-5 bg-black/60 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors"
+                title="Remove photo"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              className="w-full py-2.5 px-3 border border-dashed border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-xl text-xs font-bold text-emerald-800 flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <ImageIcon className="w-4 h-4" />
+              <span>Upload Photo of Affected Area / Animal</span>
+            </button>
+          )}
         </div>
 
         {/* Submit Triage Button */}

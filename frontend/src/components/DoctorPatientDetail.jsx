@@ -227,7 +227,74 @@ export default function DoctorPatientDetail({
         </div>
       </div>
 
-      {/* 5. Previous Notes Card */}
+      {/* 5. Clinical Treatment Details (If already treated or past treatment records exist) */}
+      {(patient.actual_diagnosis || patient.treatment_summary || patient.status === 'Treated') && (
+        <div className="bg-white rounded-3xl p-4 sm:p-5 shadow-xs border border-emerald-300 space-y-3">
+          <div className="flex items-center justify-between border-b border-emerald-100 pb-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-display font-extrabold text-slate-900 text-sm">
+                  Confirmed Clinical Treatment Record
+                </h4>
+                <p className="text-[10px] text-emerald-800 font-bold">
+                  Verified by Veterinary Medical Officer
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+              {patient.treated_at ? new Date(patient.treated_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'Treated'}
+            </span>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            <div>
+              <span className="font-bold text-slate-500 text-[11px] block uppercase">Confirmed Diagnosis:</span>
+              <p className="font-bold text-slate-900 text-sm mt-0.5">
+                {patient.actual_diagnosis || patient.treatment_summary?.diagnosis || 'Bacterial Infection / Lumpy Skin Disease'}
+              </p>
+            </div>
+
+            <div>
+              <span className="font-bold text-slate-500 text-[11px] block uppercase">Treatment Administered:</span>
+              <p className="text-slate-700 leading-relaxed mt-0.5">
+                {patient.treatment_given || patient.treatment_summary?.treatment_given || 'Administered long-acting antibiotics and anti-inflammatory injection.'}
+              </p>
+            </div>
+
+            {/* Medicines List */}
+            {((patient.medicines_used && patient.medicines_used.length > 0) || (patient.treatment_summary?.medicines && patient.treatment_summary.medicines.length > 0)) && (
+              <div>
+                <span className="font-bold text-slate-500 text-[11px] block uppercase mb-1">Medicines & Dosages:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {(patient.medicines_used || patient.treatment_summary?.medicines || []).map((m, idx) => (
+                    <span key={idx} className="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                      <span>💊 {m.name}</span>
+                      <span className="text-emerald-700 text-[11px]">({m.dosage})</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Post-Treatment Photo */}
+            {(patient.treatment_image_url || patient.treatment_summary?.photos?.[0]) && (
+              <div>
+                <span className="font-bold text-slate-500 text-[11px] block uppercase mb-1">Post-Treatment Photo:</span>
+                <img
+                  src={patient.treatment_image_url || patient.treatment_summary?.photos?.[0]}
+                  alt="Post treatment"
+                  className="w-24 h-24 rounded-xl object-cover border border-emerald-200"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 6. Previous Notes Card */}
       {patient.previous_notes && (
         <div className="bg-white rounded-3xl p-4 shadow-xs border border-slate-200/80 space-y-1 text-xs">
           <h4 className="font-bold text-slate-900 flex items-center gap-1">

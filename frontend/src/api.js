@@ -52,10 +52,19 @@ export async function getAllAnimals() {
   return await res.json();
 }
 
-export async function diagnoseAnimal(tagId, symptoms, latitude = null, longitude = null) {
+export async function diagnoseAnimal(
+  tagId,
+  symptoms,
+  latitude = null,
+  longitude = null,
+  complaintImageUrl = null,
+  complaintAudioTranscript = null
+) {
   const payload = { tag_id: tagId, symptoms };
   if (latitude !== null && latitude !== undefined) payload.latitude = latitude;
   if (longitude !== null && longitude !== undefined) payload.longitude = longitude;
+  if (complaintImageUrl) payload.complaint_image_url = complaintImageUrl;
+  if (complaintAudioTranscript) payload.complaint_audio_transcript = complaintAudioTranscript;
 
   const res = await fetch(`${API_BASE}/api/animals/diagnose`, {
     method: 'POST',
@@ -83,7 +92,7 @@ export async function resolveIncident(historyId, status) {
 }
 
 // ==========================================
-// VETERINARY DOCTOR DASHBOARD API
+// VETERINARY DOCTOR DASHBOARD & CLINICAL API
 // ==========================================
 
 export async function fetchVetAreas() {
@@ -101,6 +110,51 @@ export async function fetchVetIncidents({ village = 'ALL', risk_level = 'ALL', s
 
   const res = await fetch(`${API_BASE}/api/vet/incidents?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to load vet incidents');
+  return await res.json();
+}
+
+export async function scheduleVetAppointment({ historyId, scheduledDate, scheduledTime, scheduledNotes }) {
+  const res = await fetch(`${API_BASE}/api/vet/schedule`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      history_id: historyId,
+      scheduled_date: scheduledDate,
+      scheduled_time: scheduledTime,
+      scheduled_notes: scheduledNotes || null,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Scheduling failed' }));
+    throw new Error(err.detail || 'Failed to update schedule');
+  }
+  return await res.json();
+}
+
+export async function recordVetTreatment({
+  historyId,
+  actualDiagnosis,
+  treatmentGiven,
+  medicinesUsed = [],
+  treatmentImageUrl = null,
+  visitDateTime = null
+}) {
+  const res = await fetch(`${API_BASE}/api/vet/treatment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      history_id: historyId,
+      actual_diagnosis: actualDiagnosis,
+      treatment_given: treatmentGiven,
+      medicines_used: medicinesUsed,
+      treatment_image_url: treatmentImageUrl,
+      visit_date_time: visitDateTime
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Treatment save failed' }));
+    throw new Error(err.detail || 'Failed to record clinical treatment');
+  }
   return await res.json();
 }
 

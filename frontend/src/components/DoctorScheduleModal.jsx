@@ -1,29 +1,73 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, AlertTriangle, Check, Loader2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Calendar, Clock, AlertTriangle, Check, Loader2, ShieldAlert } from 'lucide-react';
 
 export default function DoctorScheduleModal({
   patient,
   onConfirmSchedule,
   onBack
 }) {
-  const [date, setDate] = useState('2024-09-14');
-  const [time, setTime] = useState('10:00 AM');
-  const [note, setNote] = useState('I am on the way. Will reach by 10 AM.');
+  const isHighRisk = patient?.priority === 'High Priority' || patient?.priority === 'HIGH' || patient?.risk_level === 'HIGH';
+  const isMediumRisk = patient?.priority === 'Moderate' || patient?.priority === 'MEDIUM' || patient?.risk_level === 'MEDIUM';
+  const maxDays = isHighRisk ? 2 : (isMediumRisk ? 5 : 7);
+
+  // Compute deadline date string (YYYY-MM-DD)
+  const { minDate, maxDate, deadlineFormatted } = useMemo(() => {
+    const today = new Date();
+    const minD = today.toISOString().split('T')[0];
+
+    // If patient already has a backend deadline_date, use it
+    let maxDObj = null;
+    if (patient?.deadline_date) {
+      maxDObj = new Date(patient.deadline_date);
+    } else {
+      maxDObj = new Date();
+      maxDObj.setDate(today.getDate() + maxDays);
+    }
+
+    const maxD = maxDObj.toISOString().split('T')[0];
+    const formatted = maxDObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    return { minDate: minD, maxDate: maxD, deadlineFormatted: formatted };
+  }, [patient, maxDays]);
+
+  const [date, setDate] = useState(() => {
+    // Default to scheduled_date if exists, else tomorrow
+    if (patient?.scheduled_visit?.date) {
+      // If it's already YYYY-MM-DD
+      if (patient.scheduled_visit.date.includes('-')) return patient.scheduled_visit.date;
+    }
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  });
+
+  const [time, setTime] = useState(patient?.scheduled_visit?.time || '10:00 AM');
+  const [note, setNote] = useState(patient?.scheduled_visit?.note || 'I am on the way. Will reach by 10 AM.');
   const [saving, setSaving] = useState(false);
+  const [deadlineError, setDeadlineError] = useState(null);
 
   if (!patient) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setDeadlineError(null);
+
+    // Strictly enforce deadline: date cannot be greater than maxDate
+    if (date > maxDate) {
+      setDeadlineError(
+        `Schedule rejected: Date cannot exceed the strict ${maxDays}-day deadline (${deadlineFormatted}) for ${isHighRisk ? 'High' : (isMediumRisk ? 'Medium' : 'Low')} Risk cases.`
+      );
+      return;
+    }
+
     setSaving(true);
-    setTimeout(() => {
-      onConfirmSchedule({
-        date: date,
-        time: time,
-        note: note.trim()
-      });
-      setSaving(false);
-    }, 400);
+    onConfirmSchedule({
+      history_id: patient.history_id || patient.id,
+      date: date,
+      time: time,
+      note: note.trim()
+    });
+    setSaving(false);
   };
 
   return (
@@ -92,17 +136,50 @@ export default function DoctorScheduleModal({
           </h3>
         </div>
 
+        {/* Strict Risk-Based Deadline Notice */}
+        <div className={`p-3 rounded-2xl border text-xs flex items-start gap-2.5 ${
+          isHighRisk 
+            ? 'bg-rose-50 border-rose-200 text-rose-900' 
+            : isMediumRisk 
+            ? 'bg-amber-50 border-amber-200 text-amber-900' 
+            : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+        }`}>
+          <ShieldAlert className={`w-4 h-4 shrink-0 mt-0.5 ${
+            isHighRisk ? 'text-rose-600' : isMediumRisk ? 'text-amber-600' : 'text-emerald-700'
+          }`} />
+          <div className="space-y-0.5">
+            <p className="font-extrabold text-[11px] uppercase tracking-wide">
+              {isHighRisk ? 'CRITICAL HIGH RISK (2-DAY DEADLINE)' : isMediumRisk ? 'MODERATE RISK (5-DAY DEADLINE)' : 'LOW RISK (7-DAY DEADLINE)'}
+            </p>
+            <p className="text-[11.5px] leading-relaxed">
+              Strict protocol mandates inspection on or before <span className="font-bold underline">{deadlineFormatted}</span>. Neither algorithm nor doctor can postpone past this date.
+            </p>
+          </div>
+        </div>
+
+        {deadlineError && (
+          <div className="p-3 bg-rose-600 text-white rounded-xl text-xs font-bold animate-shake">
+            {deadlineError}
+          </div>
+        )}
+
         {/* Date Selector */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
-            Select Date
-          </label>
+          <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+            <label>Select Date</label>
+            <span className="text-[10px] text-slate-400 font-mono">Max: {deadlineFormatted}</span>
+          </div>
           <div className="relative">
             <input
               type="date"
               required
+              min={minDate}
+              max={maxDate}
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => {
+                setDate(e.target.value);
+                setDeadlineError(null);
+              }}
               className="w-full px-3.5 py-2.5 bg-white rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 focus:border-emerald-700 shadow-2xs"
             />
           </div>

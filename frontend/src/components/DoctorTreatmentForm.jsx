@@ -4,7 +4,7 @@ import {
   CheckCircle2, Pill, Loader2, Image as ImageIcon 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { submitVetAction } from '../api';
+import { submitVetAction, recordVetTreatment } from '../api';
 
 export default function DoctorTreatmentForm({
   patient,
@@ -66,7 +66,10 @@ export default function DoctorTreatmentForm({
     e.preventDefault();
     setSubmitting(true);
 
+    const historyId = patient.history_id || (patient.id && typeof patient.id === 'number' ? patient.id : null);
+
     const treatmentRecord = {
+      history_id: historyId,
       date: visitDate,
       time: visitTime,
       diagnosis: diagnosis.trim(),
@@ -79,9 +82,15 @@ export default function DoctorTreatmentForm({
 
     try {
       // Save to backend database if history_id exists
-      if (patient.id) {
-        const fullNotes = `${diagnosis}\nTreatment: ${treatmentGiven}\nRx: ${medicines.map(m => `${m.name} (${m.dosage})`).join(', ')}`;
-        await submitVetAction(patient.id, 'TREATED', fullNotes).catch(() => {});
+      if (historyId) {
+        await recordVetTreatment({
+          historyId: historyId,
+          actualDiagnosis: diagnosis.trim(),
+          treatmentGiven: treatmentGiven.trim(),
+          medicinesUsed: medicines,
+          treatmentImageUrl: treatmentImages[0] || null,
+          visitDateTime: `${visitDate}, ${visitTime}`
+        });
       }
     } catch (err) {
       console.warn('Backend sync note:', err);

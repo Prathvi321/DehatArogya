@@ -9,7 +9,7 @@ import DoctorAppointments from './DoctorAppointments';
 import DoctorProfile from './DoctorProfile';
 import DoctorScanModal from './DoctorScanModal';
 import { INITIAL_DOCTOR_PROFILE, INITIAL_DOCTOR_PATIENTS } from '../data/mockDoctorData';
-import { fetchVetIncidents } from '../api';
+import { fetchVetIncidents, scheduleVetAppointment } from '../api';
 
 export default function DoctorPortal({ onTogglePortal }) {
   // Main Navigation Tabs: 'home' | 'appointments' | 'profile'
@@ -31,45 +31,54 @@ export default function DoctorPortal({ onTogglePortal }) {
   useEffect(() => {
     fetchVetIncidents()
       .then((data) => {
-        if (data && data.incidents && data.incidents.length > 0) {
-          // Merge any live reported incidents into patients
+        const incidentList = Array.isArray(data) ? data : (data?.incidents || []);
+        if (incidentList.length > 0) {
           setPatients((prev) => {
             const existingTags = new Set(prev.map((p) => p.tag_id));
-            const newIncidents = data.incidents
+            const newIncidents = incidentList
               .filter((inc) => !existingTags.has(inc.tag_id))
               .map((inc) => ({
-                id: `server-${inc.incident_id}`,
+                id: inc.id,
+                history_id: inc.id,
                 tag_id: inc.tag_id,
-                name: inc.animal_name || 'Cow',
-                animal_type: inc.species || 'Cow',
+                name: inc.animal_name || 'Animal',
+                animal_type: inc.animal_type || 'Cow',
                 age: inc.age || 3,
-                gender: 'Female',
-                image: inc.species === 'Buffalo' ? '/images/buffalo.jpg' : '/images/cow1.png',
-                owner_name: inc.owner_name || 'Local Farmer',
+                gender: inc.gender || 'Female',
+                image: inc.image_url || (inc.animal_type === 'Buffalo' ? '/images/buffalo.jpg' : '/images/cow1.png'),
+                owner_name: 'Ram Kishan',
                 owner_phone: inc.owner_phone || '9876543210',
                 village: inc.village || 'Rampur',
                 district: 'Sehore (MP)',
-                distance: '3.5 km away',
-                priority: inc.risk_level === 'HIGH' ? 'High Priority' : 'Moderate',
-                status: inc.status === 'TREATED' ? 'Treated' : 'Needs Treatment',
-                reported_at: 'Just now',
-                reported_issue: inc.reported_symptoms || inc.concern || 'Lumpy skin disease suspected',
-                images: inc.image_url ? [inc.image_url] : ['/images/cow1.png'],
+                distance: '2.5 km away',
+                priority: inc.risk_level === 'HIGH' ? 'High Priority' : (inc.risk_level === 'MEDIUM' ? 'Moderate' : 'Follow-up'),
+                risk_level: inc.risk_level,
+                status: inc.user_status === 'TREATED' ? 'Treated' : 'Needs Treatment',
+                reported_at: inc.created_at ? new Date(inc.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+                reported_issue: inc.reported_issue,
+                detected_disease: inc.detected_disease,
+                images: inc.complaint_image_url ? [inc.complaint_image_url] : (inc.image_url ? [inc.image_url] : ['/images/cow1.png']),
                 audio_note: {
-                  duration: '00:20',
-                  transcript: inc.voice_transcript || 'Cow showing distress and fever.'
+                  duration: '00:28',
+                  transcript: inc.complaint_audio_transcript || inc.reported_issue
                 },
                 location: {
                   address: `${inc.village || 'Rampur'}, Sehore (MP)`,
-                  distance: '3.5 km away',
-                  latitude: 23.2031,
-                  longitude: 77.0844
+                  distance: '2.5 km away',
+                  latitude: inc.latitude || 23.2031,
+                  longitude: inc.longitude || 77.0844
                 },
-                scheduled_visit: inc.risk_level === 'HIGH' ? {
-                  date: '14 Sep 2024',
-                  time: '09:30 AM',
-                  note: 'Urgent priority AI triage dispatch'
+                deadline_date: inc.deadline_date,
+                scheduled_visit: inc.scheduled_date ? {
+                  date: inc.scheduled_date.split('T')[0],
+                  time: inc.scheduled_time || '10:00 AM',
+                  note: inc.scheduled_notes || ''
                 } : null,
+                actual_diagnosis: inc.actual_diagnosis,
+                treatment_given: inc.treatment_given,
+                medicines_used: inc.medicines_used,
+                treatment_image_url: inc.treatment_image_url,
+                treated_at: inc.treated_at,
                 medical_history: []
               }));
             return [...newIncidents, ...prev];
@@ -108,7 +117,23 @@ export default function DoctorPortal({ onTogglePortal }) {
     }
   };
 
-  const handleConfirmSchedule = ({ date, time, note }) => {
+  const handleConfirmSchedule = async ({ history_id, date, time, note }) => {
+    const targetHistoryId = history_id || selectedPatient.history_id || (typeof selectedPatient.id === 'number' ? selectedPatient.id : null);
+
+    if (targetHistoryId) {
+      try {
+        await scheduleVetAppointment({
+          historyId: targetHistoryId,
+          scheduledDate: date,
+          scheduledTime: time,
+          scheduledNotes: note
+        });
+      } catch (err) {
+        showToast(err.message || 'Reschedule rejected by strict deadline policy');
+        return;
+      }
+    }
+
     setPatients((prev) =>
       prev.map((p) => {
         if (p.id === selectedPatient.id || p.tag_id === selectedPatient.tag_id) {

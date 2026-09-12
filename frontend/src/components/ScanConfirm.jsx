@@ -72,13 +72,26 @@ export default function ScanConfirm({ initialTagId, onSelectDifferentAnimal }) {
     }
   };
 
-  const handleDiagnose = async (symptoms, latitude = null, longitude = null) => {
+  const handleDiagnose = async (
+    symptoms,
+    latitude = null,
+    longitude = null,
+    complaintImageUrl = null,
+    complaintAudioTranscript = null
+  ) => {
     if (!animal) return;
     setDiagnosing(true);
     setError(null);
 
     try {
-      const result = await diagnoseAnimal(animal.tag_id, symptoms, latitude, longitude);
+      const result = await diagnoseAnimal(
+        animal.tag_id,
+        symptoms,
+        latitude,
+        longitude,
+        complaintImageUrl,
+        complaintAudioTranscript
+      );
       setDiagnosisResult(result);
       setStep('result');
       // Refresh animal history quietly in the background without resetting step
